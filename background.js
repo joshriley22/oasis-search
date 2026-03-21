@@ -43,45 +43,72 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return true;
     }
 
-    chrome.tabs.sendMessage(tabId, { type: "GET_PRODUCTS" }, (products) => {
-      if (chrome.runtime.lastError) {
-        sendResponse({ error: chrome.runtime.lastError.message });
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError || !tab) {
+        sendResponse({ error: "Could not access the active tab." });
         return;
       }
 
-      if (!Array.isArray(products) || products.length === 0) {
-        sendResponse({ products: [] });
+      const url = tab.url || "";
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        sendResponse({
+          error:
+            "Oasis Search can only scan regular web pages. Please navigate to a website and try again.",
+        });
         return;
       }
 
-      // Score only the first MAX_PRODUCTS_TO_SCORE products to keep responses fast.
-      // All detected products are returned so the side panel can display them.
-      const toScore = products.slice(0, MAX_PRODUCTS_TO_SCORE);
-      const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
-
-      Promise.all(
-        toScore.map((name) => {
-          console.log("Sending to backend → GET /score", { product: name });
-          return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
-            .then((res) => {
-              console.log("Received from backend ← /score HTTP", res.status, { product: name });
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              return res.json();
-            })
-            .then((data) => {
-              console.log("Received from backend ← /score body", { product: name, data });
-              return {
-                name,
-                score: typeof data?.score === "number" ? data.score : null,
-                analysis: typeof data?.analysis === "string" ? data.analysis : null,
-              };
-            })
-            .catch((err) => {
-              console.error("Score request failed for", name, err.message);
-              return { name, score: null };
+      chrome.tabs.sendMessage(tabId, { type: "GET_PRODUCTS" }, (products) => {
+        if (chrome.runtime.lastError) {
+          const errMsg = chrome.runtime.lastError?.message || "";
+          if (
+            errMsg.includes("Could not establish connection") ||
+            errMsg.includes("Receiving end does not exist")
+          ) {
+            sendResponse({
+              error:
+                "Could not connect to the page. Please refresh the tab and try again.",
             });
-        })
-      ).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
+          } else {
+            sendResponse({ error: errMsg });
+          }
+          return;
+        }
+
+        if (!Array.isArray(products) || products.length === 0) {
+          sendResponse({ products: [] });
+          return;
+        }
+
+        // Score only the first MAX_PRODUCTS_TO_SCORE products to keep responses fast.
+        // All detected products are returned so the side panel can display them.
+        const toScore = products.slice(0, MAX_PRODUCTS_TO_SCORE);
+        const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
+
+        Promise.all(
+          toScore.map((name) => {
+            console.log("Sending to backend → GET /score", { product: name });
+            return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
+              .then((res) => {
+                console.log("Received from backend ← /score HTTP", res.status, { product: name });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+              })
+              .then((data) => {
+                console.log("Received from backend ← /score body", { product: name, data });
+                return {
+                  name,
+                  score: typeof data?.score === "number" ? data.score : null,
+                  analysis: typeof data?.analysis === "string" ? data.analysis : null,
+                };
+              })
+              .catch((err) => {
+                console.error("Score request failed for", name, err.message);
+                return { name, score: null };
+              });
+          })
+        ).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
+      });
     });
   }
 
