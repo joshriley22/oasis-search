@@ -7,7 +7,8 @@
   // Selectors for product names across common e-commerce sites and generic shops.
   const PRODUCT_SELECTORS = [
     // Schema.org structured data
-    '[itemprop="name"]',
+    '[itemtype*="Product"] [itemprop="name"]',
+    '[itemtype*="product"] [itemprop="name"]',
     // Amazon
     "#productTitle",
     // eBay
