@@ -9,6 +9,9 @@
     // Schema.org structured data
     '[itemtype*="Product"] [itemprop="name"]',
     '[itemtype*="product"] [itemprop="name"]',
+    // Walmart
+    '[data-automation-id="product-title"]',
+    'h1[itemprop="name"]',
     // Amazon
     "#productTitle",
     // eBay
