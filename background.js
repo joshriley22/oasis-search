@@ -19,9 +19,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
     console.log("Received search query:", query);
 
+    console.log("Sending to backend → GET /search", { q: query });
     fetch(`${BACKEND_URL}/search?q=${encodeURIComponent(query)}`)
       .then((res) => res.json())
-      .then((data) => sendResponse({ message: data.message ?? "Search completed." }))
+      .then((data) => {
+        console.log("Received from backend ← /search", data);
+        sendResponse({ message: data.message ?? "Search completed." });
+      })
       .catch((err) => {
         console.error("Backend request failed:", err);
         sendResponse({ message: "Error contacting backend: " + err.message });
@@ -52,15 +56,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
 
       Promise.all(
-        toScore.map((name) =>
-          fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
+        toScore.map((name) => {
+          console.log("Sending to backend → GET /score", { product: name });
+          return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
             .then((res) => res.json())
-            .then((data) => ({ name, score: typeof data.score === "number" ? data.score : null }))
+            .then((data) => {
+              console.log("Received from backend ← /score", { product: name, data });
+              return { name, score: typeof data.score === "number" ? data.score : null };
+            })
             .catch((err) => {
               console.error("Score request failed for", name, err);
               return { name, score: null };
-            })
-        )
+            });
+        })
       ).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
     });
   }

@@ -32,6 +32,34 @@ oasis-search/
 
 ---
 
+## Backend API
+
+The extension communicates with `https://oasis-backend-production-5111.up.railway.app` via two endpoints:
+
+### `GET /search?q=<query>`
+
+Used by the popup when the user submits a search term.
+
+| Direction | Data |
+|-----------|------|
+| **Sent** | `q` query parameter — the URL-encoded search string entered by the user |
+| **Received** | JSON object `{ "message": string }` — a text response to display in the popup |
+
+### `GET /score?product=<name>`
+
+Used by the side panel for each detected product name.
+
+| Direction | Data |
+|-----------|------|
+| **Sent** | `product` query parameter — the URL-encoded product name scraped from the page |
+| **Received** | JSON object `{ "score": number }` — an eco-friendliness score from 1 to 100 |
+
+The score is displayed alongside the product in the side panel as a colour-coded progress bar (green ≥ 67, amber 34–66, red < 34). If the backend call fails or returns a non-numeric score, the product is shown with no score ("N/A").
+
+> **Debugging:** All backend requests and responses are logged to the browser console from the background service worker (`background.js`). Open `chrome://extensions`, click **service worker** under Oasis Search, and observe the DevTools console to see exactly what is sent and received.
+
+---
+
 ## Loading the Extension (Development)
 
 1. Open Chrome and navigate to `chrome://extensions`.
