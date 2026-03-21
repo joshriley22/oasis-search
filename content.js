@@ -36,6 +36,37 @@
   const MIN_PRODUCT_NAME_LENGTH = 3;
   const MAX_PRODUCT_NAME_LENGTH = 200;
 
+  // Patterns that identify promotional text rather than product names.
+  const PROMOTION_PATTERNS = [
+    // Percentage discounts: "10% off", "Save 20%", "50% discount"
+    /\d+\s*%\s*(off|discount|sale|savings?)/i,
+    /save\s+\d+\s*%/i,
+    // Dollar/currency amount discounts: "Save $10", "$5 off", "£3 off"
+    /save\s+[\$£€¥]\s*\d/i,
+    /[\$£€¥]\s*\d+(\.\d+)?\s+off/i,
+    // Buy-X-get-Y promotions: "Buy 2 get 1 free", "BOGO"
+    /buy\s+\d+\s*,?\s*get\s+\d+/i,
+    /\bbogo\b/i,
+    // Free shipping / free delivery
+    /free\s+(shipping|delivery)/i,
+    // Sale / clearance / deal labels
+    /\b(on\s+)?sale\b/i,
+    /\bclearance\b/i,
+    /\b(hot|best|great|daily|flash|today.?s?)\s+deals?\b/i,
+    /\bdeals?\s+of\s+the\b/i,
+    /\bspecial\s+offer\b/i,
+    /\blimited[\s-]time\b/i,
+    /\btoday\s+only\b/i,
+    /\bflash\s+sale\b/i,
+    /\bpromo(tion)?\b/i,
+    /\bcoupon\b/i,
+  ];
+
+  // Returns true if the given name looks like a promotional label rather than a product.
+  function isPromotion(name) {
+    return PROMOTION_PATTERNS.some((pattern) => pattern.test(name));
+  }
+
   // Scan the current page and return an array of unique product names.
   function scanProducts() {
     const seen = new Set();
@@ -47,7 +78,8 @@
         if (
           name.length >= MIN_PRODUCT_NAME_LENGTH &&
           name.length <= MAX_PRODUCT_NAME_LENGTH &&
-          !seen.has(name)
+          !seen.has(name) &&
+          !isPromotion(name)
         ) {
           seen.add(name);
           products.push(name);
