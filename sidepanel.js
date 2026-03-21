@@ -1,0 +1,97 @@
+// Side panel script for Oasis Search
+// Scans the active tab for products and displays their eco-friendly scores.
+
+const statusEl = document.getElementById("status");
+const productListEl = document.getElementById("product-list");
+const rescanBtn = document.getElementById("rescan-btn");
+
+// Determine the CSS class for a score value.
+function scoreClass(score) {
+  if (score === null || score === undefined) return "score-unknown";
+  if (score >= 67) return "score-high";
+  if (score >= 34) return "score-mid";
+  return "score-low";
+}
+
+// Render the product cards into the list element.
+function renderProducts(products) {
+  productListEl.innerHTML = "";
+
+  if (!products || products.length === 0) {
+    productListEl.innerHTML =
+      '<p class="empty-msg">No products found on this page.</p>';
+    statusEl.textContent = "No products detected.";
+    return;
+  }
+
+  statusEl.textContent = `Found ${products.length} product${products.length === 1 ? "" : "s"}.`;
+
+  products.forEach(({ name, score }) => {
+    const cls = scoreClass(score);
+    const displayScore = score !== null && score !== undefined ? score : "N/A";
+    const barWidth = score !== null && score !== undefined ? score : 0;
+
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <p class="product-name">${escapeHtml(name)}</p>
+      <div class="score-row ${cls}">
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" style="width:${barWidth}%"></div>
+        </div>
+        <span class="score-label">${displayScore}${score !== null && score !== undefined ? "/100" : ""}</span>
+      </div>`;
+    productListEl.appendChild(card);
+  });
+}
+
+// Escape HTML special characters to prevent XSS when inserting product names.
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Scan the active tab for products and fetch their scores from the backend.
+function scanProducts() {
+  statusEl.textContent = "Scanning page for products…";
+  productListEl.innerHTML = "";
+  rescanBtn.disabled = true;
+
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (!tab) {
+      statusEl.textContent =
+        "Could not find the active tab. Please ensure a tab is open and try again.";
+      rescanBtn.disabled = false;
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      { type: "SCAN_PRODUCTS", tabId: tab.id },
+      (response) => {
+        rescanBtn.disabled = false;
+
+        if (chrome.runtime.lastError) {
+          statusEl.textContent =
+            "Error: " + chrome.runtime.lastError.message;
+          return;
+        }
+
+        if (response && response.error) {
+          statusEl.textContent = "Error: " + response.error;
+          return;
+        }
+
+        renderProducts(response ? response.products : []);
+      }
+    );
+  });
+}
+
+rescanBtn.addEventListener("click", scanProducts);
+
+// Auto-scan when the side panel is opened.
+scanProducts();
