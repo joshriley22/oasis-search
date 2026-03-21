@@ -21,13 +21,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     console.log("Sending to backend → GET /search", { q: query });
     fetch(`${BACKEND_URL}/search?q=${encodeURIComponent(query)}`)
-      .then((res) => res.json())
+      .then((res) => {
+        console.log("Received from backend ← /search HTTP", res.status);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
-        console.log("Received from backend ← /search", data);
+        console.log("Received from backend ← /search body", data);
         sendResponse({ message: data.message ?? "Search completed." });
       })
       .catch((err) => {
-        console.error("Backend request failed:", err);
+        console.error("Backend /search request failed:", err.message);
         sendResponse({ message: "Error contacting backend: " + err.message });
       });
   }
@@ -59,13 +63,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         toScore.map((name) => {
           console.log("Sending to backend → GET /score", { product: name });
           return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
-            .then((res) => res.json())
+            .then((res) => {
+              console.log("Received from backend ← /score HTTP", res.status, { product: name });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.json();
+            })
             .then((data) => {
-              console.log("Received from backend ← /score", { product: name, data });
+              console.log("Received from backend ← /score body", { product: name, data });
               return { name, score: typeof data.score === "number" ? data.score : null };
             })
             .catch((err) => {
-              console.error("Score request failed for", name, err);
+              console.error("Score request failed for", name, err.message);
               return { name, score: null };
             });
         })
