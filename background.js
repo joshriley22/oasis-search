@@ -86,28 +86,34 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
 
         Promise.all(
-          toScore.map((name) => {
-            console.log("Sending to backend → GET /score", { product: name });
-            return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
-              .then((res) => {
-                console.log("Received from backend ← /score HTTP", res.status, { product: name });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
-              })
-              .then((data) => {
-                console.log("Received from backend ← /score body", { product: name, data });
-                return {
-                  name,
-                  score: typeof data?.score === "number" ? data.score : null,
-                  analysis: typeof data?.analysis === "string" ? data.analysis : null,
-                };
-              })
-              .catch((err) => {
-                console.error("Score request failed for", name, err.message);
-                return { name, score: null };
-              });
-          })
-        ).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
+  toScore.map((name) => {
+    console.log("Sending to backend → POST /analyze", { product: name });
+
+    return fetch(`${BACKEND_URL}/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ product: name })
+    })
+      .then((res) => {
+        console.log("Received ← HTTP", res.status, { product: name });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        return {
+          name,
+          score: typeof data?.score === "number" ? data.score : null,
+          analysis: typeof data?.analysis === "string" ? data.analysis : null,
+        };
+      })
+      .catch((err) => {
+        console.error("Score request failed for", name, err.message);
+        return { name, score: null };
+      });
+  })
+).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
       });
     });
   }
