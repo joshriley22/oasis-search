@@ -46,11 +46,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         return;
       }
 
-      // Limit to the first MAX_PRODUCTS_TO_SCORE products to keep responses fast.
-      const productNames = products.slice(0, MAX_PRODUCTS_TO_SCORE);
+      // Score only the first MAX_PRODUCTS_TO_SCORE products to keep responses fast.
+      // All detected products are returned so the side panel can display them.
+      const toScore = products.slice(0, MAX_PRODUCTS_TO_SCORE);
+      const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
 
       Promise.all(
-        productNames.map((name) =>
+        toScore.map((name) =>
           fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
             .then((res) => res.json())
             .then((data) => ({ name, score: typeof data.score === "number" ? data.score : null }))
@@ -59,7 +61,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
               return { name, score: null };
             })
         )
-      ).then((scored) => sendResponse({ products: scored }));
+      ).then((scored) => sendResponse({ products: [...scored, ...unscored] }));
     });
   }
 
