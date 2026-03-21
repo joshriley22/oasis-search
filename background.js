@@ -28,7 +28,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       })
       .then((data) => {
         console.log("Received from backend ← /search body", data);
-        sendResponse({ message: data.message ?? "Search completed." });
+        sendResponse({ message: data?.message ?? "Search completed." });
       })
       .catch((err) => {
         console.error("Backend /search request failed:", err.message);
@@ -70,7 +70,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             })
             .then((data) => {
               console.log("Received from backend ← /score body", { product: name, data });
-              return { name, score: typeof data.score === "number" ? data.score : null };
+              return {
+                name,
+                score: typeof data?.score === "number" ? data.score : null,
+                analysis: typeof data?.analysis === "string" ? data.analysis : null,
+              };
             })
             .catch((err) => {
               console.error("Score request failed for", name, err.message);

@@ -26,7 +26,7 @@ function renderProducts(products) {
 
   statusEl.textContent = `Found ${products.length} product${products.length === 1 ? "" : "s"}.`;
 
-  products.forEach(({ name, score }) => {
+  products.forEach(({ name, score, analysis }) => {
     const cls = scoreClass(score);
     const displayScore = score !== null && score !== undefined ? score : "N/A";
     const barWidth = score !== null && score !== undefined ? score : 0;
@@ -40,7 +40,7 @@ function renderProducts(products) {
           <div class="score-bar-fill" style="width:${barWidth}%"></div>
         </div>
         <span class="score-label">${displayScore}${score !== null && score !== undefined ? "/100" : ""}</span>
-      </div>`;
+      </div>${analysis ? `<p class="analysis">${escapeHtml(analysis)}</p>` : ""}`;
     productListEl.appendChild(card);
   });
 }
