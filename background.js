@@ -88,7 +88,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         Promise.all(
           toScore.map((name) => {
             console.log("Sending to backend → GET /score", { product: name });
-            return fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
+            return fetch(`${BACKEND_URL}/analyze?product=${encodeURIComponent(name)}`)
               .then((res) => {
                 console.log("Received from backend ← /score HTTP", res.status, { product: name });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
