@@ -85,7 +85,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const toScore = products.slice(0, MAX_PRODUCTS_TO_SCORE);
         const unscored = products.slice(MAX_PRODUCTS_TO_SCORE).map((name) => ({ name, score: null }));
 
-        Promise.all(
+       Promise.all(
   toScore.map((name) => {
     console.log("Sending to backend → POST /analyze", { product: name });
 
