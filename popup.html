@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oasis Search</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        width: 320px;
+        padding: 16px;
+        background-color: #f0faf4;
+        color: #1a3c2b;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      header img {
+        width: 32px;
+        height: 32px;
+      }
+
+      header h1 {
+        font-size: 1.2rem;
+        color: #2d7a4f;
+      }
+
+      .search-container {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      #search-input {
+        flex: 1;
+        padding: 8px 10px;
+        border: 1px solid #a3d9b8;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        background-color: #fff;
+        color: #1a3c2b;
+      }
+
+      #search-input:focus {
+        border-color: #2d7a4f;
+      }
+
+      #search-btn {
+        padding: 8px 14px;
+        background-color: #2d7a4f;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      #search-btn:hover {
+        background-color: #235f3d;
+      }
+
+      #result {
+        font-size: 0.85rem;
+        color: #4a7060;
+        min-height: 20px;
+      }
+
+      footer {
+        margin-top: 16px;
+        font-size: 0.75rem;
+        text-align: center;
+        color: #7aab8e;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon48.png" alt="Oasis Search logo" />
+      <h1>Oasis Search</h1>
+    </header>
+
+    <div class="search-container">
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Search eco-friendly..."
+        aria-label="Search query"
+      />
+      <button id="search-btn" aria-label="Search">Go</button>
+    </div>
+
+    <p id="result"></p>
+
+    <footer>Make eco-friendly decisions with AI.</footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
