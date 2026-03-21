@@ -29,5 +29,8 @@
   "permissions": [
     "activeTab",
     "storage"
+  ],
+  "host_permissions": [
+    "https://oasis-backend-production-5111.up.railway.app/*"
   ]
 }
