@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oasis Search – Product Scanner</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        padding: 16px;
+        background-color: #f0faf4;
+        color: #1a3c2b;
+        min-width: 280px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      header img {
+        width: 32px;
+        height: 32px;
+      }
+
+      header h1 {
+        font-size: 1.2rem;
+        color: #2d7a4f;
+      }
+
+      #status {
+        font-size: 0.9rem;
+        color: #4a7060;
+        margin-bottom: 12px;
+        min-height: 20px;
+      }
+
+      #rescan-btn {
+        display: block;
+        width: 100%;
+        padding: 8px 14px;
+        background-color: #2d7a4f;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+
+      #rescan-btn:hover {
+        background-color: #235f3d;
+      }
+
+      #rescan-btn:disabled {
+        background-color: #a3d9b8;
+        cursor: not-allowed;
+      }
+
+      #product-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .product-card {
+        background-color: #fff;
+        border: 1px solid #a3d9b8;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .product-name {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #1a3c2b;
+        margin-bottom: 8px;
+        word-break: break-word;
+      }
+
+      .score-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .score-bar-bg {
+        flex: 1;
+        height: 10px;
+        background-color: #e0f5ea;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.4s ease;
+      }
+
+      .score-label {
+        font-size: 0.85rem;
+        font-weight: bold;
+        min-width: 40px;
+        text-align: right;
+      }
+
+      .score-high .score-bar-fill {
+        background-color: #2d7a4f;
+      }
+      .score-high .score-label {
+        color: #2d7a4f;
+      }
+
+      .score-mid .score-bar-fill {
+        background-color: #e8a020;
+      }
+      .score-mid .score-label {
+        color: #e8a020;
+      }
+
+      .score-low .score-bar-fill {
+        background-color: #c0392b;
+      }
+      .score-low .score-label {
+        color: #c0392b;
+      }
+
+      .score-unknown .score-bar-fill {
+        background-color: #a3d9b8;
+        width: 0% !important;
+      }
+      .score-unknown .score-label {
+        color: #7aab8e;
+      }
+
+      .empty-msg {
+        font-size: 0.85rem;
+        color: #7aab8e;
+        text-align: center;
+        padding: 16px 0;
+      }
+
+      footer {
+        margin-top: 16px;
+        font-size: 0.75rem;
+        text-align: center;
+        color: #7aab8e;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon48.png" alt="Oasis Search logo" />
+      <h1>Oasis Search</h1>
+    </header>
+
+    <p id="status">Scanning page for products…</p>
+
+    <button id="rescan-btn" disabled>Rescan Page</button>
+
+    <div id="product-list"></div>
+
+    <footer>Eco-friendliness score out of 100.</footer>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

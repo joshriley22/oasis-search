@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-input");
   const searchBtn = document.getElementById("search-btn");
+  const scanBtn = document.getElementById("scan-btn");
   const result = document.getElementById("result");
 
   // Restore last query from storage
@@ -30,6 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function handleScan() {
+    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      if (!tab) return;
+      chrome.sidePanel.open({ windowId: tab.windowId });
+      window.close();
+    });
+  }
+
   searchBtn.addEventListener("click", handleSearch);
 
   searchInput.addEventListener("keydown", (e) => {
@@ -37,4 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
       handleSearch();
     }
   });
+
+  scanBtn.addEventListener("click", handleScan);
 });

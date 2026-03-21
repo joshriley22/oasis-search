@@ -7,6 +7,9 @@ chrome.runtime.onInstalled.addListener(() => {
 
 const BACKEND_URL = "https://oasis-backend-production-5111.up.railway.app";
 
+// Maximum number of products to score per scan to keep responses fast.
+const MAX_PRODUCTS_TO_SCORE = 10;
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SEARCH") {
     const query = typeof message.query === "string" ? message.query.trim() : "";
@@ -23,6 +26,41 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         console.error("Backend request failed:", err);
         sendResponse({ message: "Error contacting backend: " + err.message });
       });
+  }
+
+  if (message.type === "SCAN_PRODUCTS") {
+    const tabId = message.tabId;
+    if (!tabId) {
+      sendResponse({ error: "No tab ID provided." });
+      return true;
+    }
+
+    chrome.tabs.sendMessage(tabId, { type: "GET_PRODUCTS" }, (products) => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ error: chrome.runtime.lastError.message });
+        return;
+      }
+
+      if (!Array.isArray(products) || products.length === 0) {
+        sendResponse({ products: [] });
+        return;
+      }
+
+      // Limit to the first MAX_PRODUCTS_TO_SCORE products to keep responses fast.
+      const productNames = products.slice(0, MAX_PRODUCTS_TO_SCORE);
+
+      Promise.all(
+        productNames.map((name) =>
+          fetch(`${BACKEND_URL}/score?product=${encodeURIComponent(name)}`)
+            .then((res) => res.json())
+            .then((data) => ({ name, score: typeof data.score === "number" ? data.score : null }))
+            .catch((err) => {
+              console.error("Score request failed for", name, err);
+              return { name, score: null };
+            })
+        )
+      ).then((scored) => sendResponse({ products: scored }));
+    });
   }
 
   // Return true to keep the message channel open for async responses.
