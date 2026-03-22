@@ -78,10 +78,50 @@
     return PROMOTION_PATTERNS.some((pattern) => pattern.test(name));
   }
 
+  // Extract the product name from the page <title> tag on Amazon and Walmart, where
+  // the title reliably contains the product name separated from the site name.
+  // Amazon format: "Product Name : Amazon.com" or "Product Name - Amazon.com"
+  //                or "Amazon.com : Product Name"
+  // Walmart format: "Product Name - Walmart.com" or "Product Name | Walmart.com"
+  function getProductFromPageTitle() {
+    const hostname = window.location.hostname;
+    let title = document.title.trim();
+    if (!title) return null;
+
+    if (/amazon\./i.test(hostname)) {
+      // Strip " : Amazon..." or " - Amazon..." suffix, or "Amazon... : " prefix
+      title = title
+        .replace(/\s*[:-]\s*amazon[\w.]*\s*$/i, "")
+        .replace(/^amazon[\w.]*\s*:\s*/i, "")
+        .trim();
+    } else if (/walmart\./i.test(hostname)) {
+      // Strip " - Walmart..." or " | Walmart..." suffix
+      title = title.replace(/\s*[-|]\s*walmart[\w.]*\s*$/i, "").trim();
+    } else {
+      return null;
+    }
+
+    // Return null if stripping the site name left nothing (e.g. title was only "Amazon.com").
+    return title || null;
+  }
+
   // Scan the current page and return an array of unique product names.
   function scanProducts() {
     const seen = new Set();
     const products = [];
+
+    // On Amazon and Walmart the page <title> reliably encodes the product name;
+    // check it first so the main product always leads the results.
+    const titleProduct = getProductFromPageTitle();
+    if (
+      titleProduct &&
+      titleProduct.length >= MIN_PRODUCT_NAME_LENGTH &&
+      titleProduct.length <= MAX_PRODUCT_NAME_LENGTH &&
+      !isPromotion(titleProduct)
+    ) {
+      seen.add(titleProduct);
+      products.push(titleProduct);
+    }
 
     for (const selector of PRODUCT_SELECTORS) {
       document.querySelectorAll(selector).forEach((el) => {
