@@ -68,10 +68,11 @@ function escapeHtml(text) {
 
 // Split an analysis string at an embedded "Alternative: <url>" suffix.
 // Returns { reason: string, altUrl: string|null }.
-// The captured URL token is later validated by safeEcoLink (protocol + URL parse).
+// Only matches when the URL token begins with http:// or https://, so that
+// non-URL text after "Alternative:" is never silently stripped from the reason.
 // Pattern: optional leading content (lazy), optional whitespace, "Alternative:",
-//          optional whitespace, one non-whitespace token (the URL), optional trailing space.
-const ALTERNATIVE_URL_PATTERN = /^([\s\S]*?)\s*Alternative:\s*(\S+)\s*$/i;
+//          optional whitespace, an http(s) URL token, optional trailing space.
+const ALTERNATIVE_URL_PATTERN = /^([\s\S]*?)\s*Alternative:\s*(https?:\/\/\S+)\s*$/i;
 
 function parseAnalysis(text) {
   if (!text) return { reason: "", altUrl: null };
