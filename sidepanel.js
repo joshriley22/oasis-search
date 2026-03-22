@@ -39,6 +39,8 @@ function renderProducts(products) {
 
   ratedProducts.forEach(({ name, score, analysis, link }) => {
     const cls = scoreClass(score);
+    const { reason, altUrl } = parseAnalysis(analysis);
+    const ecoUrl = link || altUrl;
 
     const card = document.createElement("div");
     card.className = "product-card";
@@ -49,7 +51,7 @@ function renderProducts(products) {
           <div class="score-bar-fill" style="width:${score}%"></div>
         </div>
         <span class="score-label">${score}/100</span>
-      </div>${analysis ? `<p class="analysis">${escapeHtml(analysis)}</p>` : ""}${safeEcoLink(link)}`;
+      </div>${reason ? `<p class="analysis">${escapeHtml(reason)}</p>` : ""}${safeEcoLink(ecoUrl)}`;
     productListEl.appendChild(card);
   });
 }
@@ -64,6 +66,22 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
+// Split an analysis string at an embedded "Alternative: <url>" suffix.
+// Returns { reason: string, altUrl: string|null }.
+// The captured URL token is later validated by safeEcoLink (protocol + URL parse).
+// Pattern: optional leading content (lazy), optional whitespace, "Alternative:",
+//          optional whitespace, one non-whitespace token (the URL), optional trailing space.
+const ALTERNATIVE_URL_PATTERN = /^([\s\S]*?)\s*Alternative:\s*(\S+)\s*$/i;
+
+function parseAnalysis(text) {
+  if (!text) return { reason: "", altUrl: null };
+  const match = text.match(ALTERNATIVE_URL_PATTERN);
+  if (match) {
+    return { reason: match[1].trim(), altUrl: match[2] };
+  }
+  return { reason: text, altUrl: null };
+}
+
 // Return an anchor element string for an eco-friendly alternative link,
 // or an empty string if the URL is missing or not a safe http(s) URL.
 function safeEcoLink(url) {
@@ -75,7 +93,7 @@ function safeEcoLink(url) {
     return "";
   }
   const safeUrl = escapeHtml(url);
-  return `<p class="eco-link">Eco-friendly alternative:<br><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></p>`;
+  return `<p class="eco-link">Alternative: <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></p>`;
 }
 
 // Scan the active tab for products and fetch their scores from the backend.
