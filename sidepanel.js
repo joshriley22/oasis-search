@@ -37,7 +37,7 @@ function renderProducts(products) {
 
   statusEl.textContent = `Found ${ratedProducts.length} rated product${ratedProducts.length === 1 ? "" : "s"}.`;
 
-  ratedProducts.forEach(({ name, score, analysis }) => {
+  ratedProducts.forEach(({ name, score, analysis, link }) => {
     const cls = scoreClass(score);
 
     const card = document.createElement("div");
@@ -49,7 +49,7 @@ function renderProducts(products) {
           <div class="score-bar-fill" style="width:${score}%"></div>
         </div>
         <span class="score-label">${score}/100</span>
-      </div>${analysis ? `<p class="analysis">${escapeHtml(analysis)}</p>` : ""}`;
+      </div>${analysis ? `<p class="analysis">${escapeHtml(analysis)}</p>` : ""}${safeEcoLink(link)}`;
     productListEl.appendChild(card);
   });
 }
@@ -62,6 +62,20 @@ function escapeHtml(text) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// Return an anchor element string for an eco-friendly alternative link,
+// or an empty string if the URL is missing or not a safe http(s) URL.
+function safeEcoLink(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+  } catch {
+    return "";
+  }
+  const safeUrl = escapeHtml(url);
+  return `<p class="eco-link"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Eco-friendly alternative: ${safeUrl}</a></p>`;
 }
 
 // Scan the active tab for products and fetch their scores from the backend.
