@@ -106,6 +106,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           name,
           score: typeof data?.score === "number" ? data.score : null,
           analysis: typeof data?.analysis === "string" ? data.analysis : null,
+          link: typeof data?.link === "string" ? data.link : null,
         };
       })
       .catch((err) => {
