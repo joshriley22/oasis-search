@@ -24,12 +24,21 @@ function renderProducts(products) {
     return;
   }
 
-  statusEl.textContent = `Found ${products.length} product${products.length === 1 ? "" : "s"}.`;
+  const ratedProducts = products.filter(
+    ({ score }) => score !== null && score !== undefined
+  );
 
-  products.forEach(({ name, score, analysis }) => {
+  if (ratedProducts.length === 0) {
+    productListEl.innerHTML =
+      '<p class="empty-msg">No rated products found on this page.</p>';
+    statusEl.textContent = "No rated products detected.";
+    return;
+  }
+
+  statusEl.textContent = `Found ${ratedProducts.length} rated product${ratedProducts.length === 1 ? "" : "s"}.`;
+
+  ratedProducts.forEach(({ name, score, analysis }) => {
     const cls = scoreClass(score);
-    const displayScore = score !== null && score !== undefined ? score : "N/A";
-    const barWidth = score !== null && score !== undefined ? score : 0;
 
     const card = document.createElement("div");
     card.className = "product-card";
@@ -37,9 +46,9 @@ function renderProducts(products) {
       <p class="product-name">${escapeHtml(name)}</p>
       <div class="score-row ${cls}">
         <div class="score-bar-bg">
-          <div class="score-bar-fill" style="width:${barWidth}%"></div>
+          <div class="score-bar-fill" style="width:${score}%"></div>
         </div>
-        <span class="score-label">${displayScore}${score !== null && score !== undefined ? "/100" : ""}</span>
+        <span class="score-label">${score}/100</span>
       </div>${analysis ? `<p class="analysis">${escapeHtml(analysis)}</p>` : ""}`;
     productListEl.appendChild(card);
   });
