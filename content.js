@@ -5,23 +5,30 @@
   "use strict";
 
   // Selectors for product names across common e-commerce sites and generic shops.
+  // Specific main-product selectors are listed first so the primary item on a
+  // product page is always detected before generic/related-product selectors fill
+  // the MAX_PRODUCTS_TO_SCORE quota and push the main product into the unscored bucket.
   const PRODUCT_SELECTORS = [
-    // Schema.org structured data
-    '[itemtype*="Product"] [itemprop="name"]',
-    '[itemtype*="product"] [itemprop="name"]',
-    // Walmart
-    '[data-automation-id="product-title"]',
-    'h1[itemprop="name"]',
-    // Amazon
+    // Amazon – main product page title (must come first)
     "#productTitle",
+    // Walmart – main product page title and listing-page cards (must come first)
+    '[data-automation-id="product-title"]',
+    // Amazon – search/listing page results; fallback covers future markup changes
+    '[data-component-type="s-search-result"] h2 a span',
+    '[data-component-type="s-search-result"] h2 span',
+    // Generic product page h1 headings
+    'h1[itemprop="name"]',
+    'h1[class*="product"]',
+    'h1[class*="title"]',
     // eBay
     '[class*="item-title"]',
     // Etsy, Shopify, and other platforms
     '[data-testid*="product-title"]',
     '[data-testid*="product-name"]',
-    // Generic product page headings
-    'h1[class*="product"]',
-    'h1[class*="title"]',
+    // Schema.org structured data (intentionally after specific selectors so
+    // related/sponsored products don't displace the main product)
+    '[itemtype*="Product"] [itemprop="name"]',
+    '[itemtype*="product"] [itemprop="name"]',
     // Common CSS class conventions
     ".product-title",
     ".product-name",
@@ -37,7 +44,8 @@
   ];
 
   const MIN_PRODUCT_NAME_LENGTH = 3;
-  const MAX_PRODUCT_NAME_LENGTH = 200;
+  // 500 chars to accommodate long Amazon product titles that routinely exceed 200 chars.
+  const MAX_PRODUCT_NAME_LENGTH = 500;
 
   // Patterns that identify promotional text rather than product names.
   const PROMOTION_PATTERNS = [
