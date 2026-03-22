@@ -75,7 +75,7 @@ function safeEcoLink(url) {
     return "";
   }
   const safeUrl = escapeHtml(url);
-  return `<p class="eco-link"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Eco-friendly alternative: ${safeUrl}</a></p>`;
+  return `<p class="eco-link">Eco-friendly alternative:<br><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></p>`;
 }
 
 // Scan the active tab for products and fetch their scores from the backend.
@@ -115,6 +115,16 @@ function scanProducts() {
 }
 
 rescanBtn.addEventListener("click", scanProducts);
+
+// Open eco-friendly alternative links in a new tab via the Chrome API,
+// since plain anchor navigation does not work inside extension side panels.
+productListEl.addEventListener("click", (e) => {
+  const anchor = e.target.closest(".eco-link a");
+  if (anchor) {
+    e.preventDefault();
+    chrome.tabs.create({ url: anchor.href });
+  }
+});
 
 // Auto-scan when the side panel is opened.
 scanProducts();
